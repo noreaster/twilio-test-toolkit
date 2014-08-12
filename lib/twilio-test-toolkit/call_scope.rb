@@ -28,14 +28,14 @@ module TwilioTestToolkit
       el = get_redirect_node
       raise "No redirect" if el.nil?
 
-      return CallScope.from_request(self, el.text, { :method =>el[:method]}.merge(options))
+      return CallScope.from_request(self, el.text, { :method => normalize_redirect_method(el[:method])}.merge(options))
     end
 
     def follow_redirect!(options = {})
       el = get_redirect_node
       raise "No redirect" if el.nil?
 
-      request_for_twiml!(normalize_redirect_path(el.text), { :method => el[:method] }.merge(options))
+      request_for_twiml!(normalize_redirect_path(el.text), { :method => normalize_redirect_method(el[:method])}.merge(options))
     end
 
     # Stuff for gatherers
@@ -206,6 +206,17 @@ module TwilioTestToolkit
         # Strip off ".xml" off of the end of any path
         p = path[0...path.length - ".xml".length] if path.downcase.match(/\.xml$/)
         return p
+      end
+
+      # Normalize the redirect method, as method should be a lowercase symbol rather than an uppercase string
+      def normalize_redirect_method(method)
+        if method.is_a? String
+          method.downcase.to_sym
+        elsif method.is_a? Symbol
+          method
+        else
+          nil
+        end
       end
 
       # Post and update the scope. Options:
